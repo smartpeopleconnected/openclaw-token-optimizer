@@ -1,48 +1,26 @@
-# Token Optimizer
+# 🦞 Token Optimizer for OpenClaw
 
-> Reduce OpenClaw AI costs by 97% - From $1,500+/month to under $50/month
+Slash your AI costs from $1,500+/month to under $50/month.
 
-## Quick Start
+## The Problem
 
-```bash
-# Analyze current setup
-python src/analyzer.py
+OpenClaw defaults prioritize capability over cost. You're burning expensive Sonnet/Opus tokens on tasks Haiku handles perfectly, paying for API heartbeats that could run free locally, and loading 50KB of context when 8KB suffices.
 
-# Apply all optimizations
-python src/optimizer.py --mode full
+## The Solution
 
-# Verify setup
-python src/verify.py
-```
+Four optimizations that work together:
 
-## What It Does
+### ✅ Model Routing (92% savings)
+Haiku by default, Sonnet/Opus only when needed
 
-| Optimization | Savings |
-|--------------|---------|
-| Model routing (Haiku default) | 92% |
-| Heartbeat to Ollama | 100% (free) |
-| Session management | 80% |
-| Prompt caching | 90% |
-| **Combined** | **97%** |
+### ✅ Ollama Heartbeats (100% savings)
+Free local LLM for status checks
 
-## Features
+### ✅ Session Management (80% savings)
+Load 8KB instead of 50KB context
 
-### Free Tier (This Download)
-- ✅ Configuration analyzer
-- ✅ Basic optimization templates
-- ✅ SOUL.md / USER.md templates
-- ✅ System prompt rules
-
-### Premium ($29.99)
-- ✅ Everything in Free
-- ✅ Full optimizer with all modes
-- ✅ Ollama heartbeat setup
-- ✅ Verification tools
-- ✅ Windows + Unix installers
-- ✅ Email support
-- ✅ 1 year updates
-
-**[Get Premium →](https://YOUR_GUMROAD_LINK)**
+### ✅ Prompt Caching (90% savings)
+Reuse system prompts at 10% cost
 
 ## Cost Comparison
 
@@ -52,18 +30,29 @@ python src/verify.py
 | Monthly | $70-90 | $3-5 |
 | Yearly | $800+ | $40-60 |
 
-## Installation
+## What's Included
 
-### Via ClawHub
-```bash
-clawdhub install token-optimizer
-```
+- One-command optimizer
+- Ready-to-use config templates
+- SOUL.md & USER.md templates
+- System prompt optimization rules
+- Verification tools
+- Windows + Unix installers
 
-### Manual
+## Quick Start
+
 ```bash
-git clone https://github.com/smartpeopleconnected/openclaw-token-optimizer
-cd token-optimizer
+# Install
+clawhub install token-optimizer
+
+# Analyze current setup
+python src/analyzer.py
+
+# Apply all optimizations
 python src/optimizer.py --mode full
+
+# Verify setup
+python src/verify.py
 ```
 
 ## Configuration Generated
@@ -86,11 +75,10 @@ python src/optimizer.py --mode full
 }
 ```
 
-## Support
+## Links
 
-- **Docs:** See README.md
-- **Issues:** GitHub Issues
-- **Email:** smartpeopleconnected@gmail.com (Premium users)
+- **GitHub**: https://github.com/smartpeopleconnected/openclaw-token-optimizer
+- **Issues**: https://github.com/smartpeopleconnected/openclaw-token-optimizer/issues
 
 ## Author
 
@@ -104,4 +92,4 @@ MIT License - Free to use, modify, and distribute.
 
 ---
 
-*Stop burning tokens. Start building things.*
+*5 minutes to setup. 97% cost reduction. Stop burning tokens. Start building.*
