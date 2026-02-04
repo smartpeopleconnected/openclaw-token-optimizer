@@ -1,5 +1,7 @@
 ---
-summary: "Reduce OpenClaw AI costs by 97%. Haiku routing, free Ollama heartbeats, prompt caching, budget controls. $1,500/month → $50/month in 5 minutes."
+name: token-optimizer
+description: Reduce OpenClaw AI costs by 97%. Haiku model routing, free Ollama heartbeats, prompt caching, and budget controls. Go from $1,500/month to $50/month in 5 minutes.
+homepage: https://github.com/smartpeopleconnected/openclaw-token-optimizer
 ---
 
 # 🦞 Token Optimizer for OpenClaw
