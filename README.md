@@ -6,6 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-Compatible-purple.svg)](https://openclaw.ai)
 [![Cost Savings](https://img.shields.io/badge/savings-97%25-brightgreen.svg)](https://github.com/smartpeopleconnected/openclaw-token-optimizer)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20this%20project-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/smartpeopleconnected)
 
 ---
 
@@ -221,9 +222,11 @@ token-optimizer/
 
 ## Support
 
-- **Documentation:** [docs.tokenoptimizer.ai](https://docs.tokenoptimizer.ai)
-- **Issues:** [GitHub Issues](https://github.com/tokenoptimizer/openclaw-optimizer/issues)
-- **Email:** support@tokenoptimizer.ai
+- **Issues:** [GitHub Issues](https://github.com/smartpeopleconnected/openclaw-token-optimizer/issues)
+
+**If this tool saved you money, consider supporting development:**
+
+[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/smartpeopleconnected)
 
 ## License
 
