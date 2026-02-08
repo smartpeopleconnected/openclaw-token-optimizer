@@ -405,6 +405,7 @@ def main():
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2, default=str)
     print(f"\nDetailed results saved to: {output_path}")
+    print(colorize("\nRun 'python src/verify.py' to see your accumulated savings report.", Colors.CYAN))
 
     return 0 if results['total_monthly_savings'] == 0 else 1
 

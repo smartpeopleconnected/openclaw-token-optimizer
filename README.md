@@ -58,7 +58,11 @@ chmod +x scripts/install.sh
 
 **Manual Python:**
 ```bash
+# Preview changes (safe dry-run, default)
 python src/optimizer.py --mode full
+
+# Apply changes
+python src/optimizer.py --mode full --apply
 ```
 
 ### Verify Setup
@@ -112,9 +116,16 @@ Shows:
 - Optimization opportunities
 - Estimated monthly savings
 
-### Apply Full Optimization
+### Preview Changes (Dry Run)
 ```bash
 python src/optimizer.py --mode full
+```
+
+Shows what would change without modifying anything. This is the default.
+
+### Apply Full Optimization
+```bash
+python src/optimizer.py --mode full --apply
 ```
 
 Applies all optimizations:
@@ -126,21 +137,16 @@ Applies all optimizations:
 ### Apply Specific Optimizations
 ```bash
 # Model routing only
-python src/optimizer.py --mode routing
+python src/optimizer.py --mode routing --apply
 
 # Heartbeat to Ollama only
-python src/optimizer.py --mode heartbeat
+python src/optimizer.py --mode heartbeat --apply
 
 # Prompt caching only
-python src/optimizer.py --mode caching
+python src/optimizer.py --mode caching --apply
 
 # Rate limits only
-python src/optimizer.py --mode limits
-```
-
-### Dry Run (Preview Changes)
-```bash
-python src/optimizer.py --mode full --dry-run
+python src/optimizer.py --mode limits --apply
 ```
 
 ## Configuration

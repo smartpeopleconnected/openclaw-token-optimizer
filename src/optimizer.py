@@ -218,15 +218,50 @@ class TokenOptimizer:
         try:
             result = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
             if 'llama3.2:3b' not in result.stdout and 'llama3.2' not in result.stdout:
-                print(colorize("[INFO] Pulling llama3.2:3b model...", Colors.CYAN))
-                if not self.dry_run:
-                    subprocess.run(['ollama', 'pull', 'llama3.2:3b'], check=True)
-                print(colorize("[SUCCESS] Model ready", Colors.GREEN))
+                if self.dry_run:
+                    print(colorize("[DRY-RUN] Would pull llama3.2:3b model (~2GB)", Colors.YELLOW))
+                else:
+                    answer = input(colorize(
+                        "[CONFIRM] Download llama3.2:3b model (~2GB)? [y/N] ", Colors.CYAN
+                    )).strip().lower()
+                    if answer == 'y':
+                        print(colorize("[INFO] Pulling llama3.2:3b model...", Colors.CYAN))
+                        subprocess.run(['ollama', 'pull', 'llama3.2:3b'], check=True)
+                        print(colorize("[SUCCESS] Model ready", Colors.GREEN))
+                    else:
+                        print(colorize("[SKIP] Model not downloaded. Run manually: ollama pull llama3.2:3b", Colors.YELLOW))
+            else:
+                print(colorize("[OK] llama3.2 model already available", Colors.GREEN))
         except subprocess.SubprocessError as e:
             print(colorize(f"[ERROR] Failed to pull model: {e}", Colors.RED))
             return False
 
         return True
+
+    def init_stats(self):
+        """Initialize or update stats tracking file for benefit reports."""
+        stats_path = self.openclaw_dir / 'token-optimizer-stats.json'
+
+        if stats_path.exists():
+            try:
+                with open(stats_path, 'r') as f:
+                    stats = json.load(f)
+            except json.JSONDecodeError:
+                stats = {}
+        else:
+            stats = {}
+
+        if 'installed_at' not in stats:
+            stats['installed_at'] = datetime.now().isoformat()
+
+        stats['last_optimized'] = datetime.now().isoformat()
+        stats.setdefault('last_benefit_report', None)
+        stats.setdefault('verify_count', 0)
+
+        if not self.dry_run:
+            with open(stats_path, 'w') as f:
+                json.dump(stats, f, indent=2)
+            print(colorize("[STATS] Tracking initialized for savings reports", Colors.BLUE))
 
     def optimize_full(self):
         """Apply all optimizations."""
@@ -260,6 +295,9 @@ class TokenOptimizer:
 
         # Generate system prompt additions
         self.generate_system_prompts()
+
+        # Initialize stats tracking
+        self.init_stats()
 
         print(colorize("\n=== Optimization Complete ===", Colors.BOLD + Colors.GREEN))
         print("\nNext steps:")
@@ -488,10 +526,13 @@ Do not remove or modify unless you understand the cost implications.
 
         for filename, content in prompts.items():
             filepath = prompts_dir / filename
-            if not self.dry_run:
-                with open(filepath, 'w') as f:
-                    f.write(content.strip())
-            print(colorize(f"  [CREATED] {filepath}", Colors.GREEN))
+            if filepath.exists() and not self.dry_run:
+                print(colorize(f"  [SKIP] {filename} already exists", Colors.YELLOW))
+            else:
+                if not self.dry_run:
+                    with open(filepath, 'w') as f:
+                        f.write(content.strip())
+                print(colorize(f"  [CREATED] {filepath}", Colors.GREEN))
 
         print(colorize(f"\n[INFO] Add contents of {prompts_dir / 'OPTIMIZATION-RULES.md'} to your system prompt", Colors.CYAN))
 
@@ -500,11 +541,16 @@ def main():
     parser = argparse.ArgumentParser(description='Token Optimizer for OpenClaw')
     parser.add_argument('--mode', choices=['full', 'routing', 'heartbeat', 'caching', 'limits'],
                        default='full', help='Optimization mode')
-    parser.add_argument('--dry-run', action='store_true', help='Show what would be done without making changes')
+    parser.add_argument('--apply', action='store_true',
+                       help='Apply changes (default is dry-run for safety)')
 
     args = parser.parse_args()
 
-    optimizer = TokenOptimizer(dry_run=args.dry_run)
+    dry_run = not args.apply
+    if dry_run:
+        print(colorize("[DRY-RUN] Preview mode. Use --apply to make changes.\n", Colors.YELLOW))
+
+    optimizer = TokenOptimizer(dry_run=dry_run)
     optimizer.optimize_mode(args.mode)
 
     return 0

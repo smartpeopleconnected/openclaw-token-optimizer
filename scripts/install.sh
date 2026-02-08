@@ -85,8 +85,14 @@ if command -v ollama &> /dev/null; then
     if ollama list 2>/dev/null | grep -q "llama3.2"; then
         echo -e "  ${GREEN}✓${NC} llama3.2 model available"
     else
-        echo -e "  ${YELLOW}○${NC} Pulling llama3.2:3b model..."
-        ollama pull llama3.2:3b 2>/dev/null || echo -e "  ${YELLOW}○${NC} Could not pull model. Run manually: ollama pull llama3.2:3b"
+        echo -e -n "  ${CYAN}Download llama3.2:3b model (~2GB)? [y/N]${NC} "
+        read -r answer
+        if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+            echo -e "  ${YELLOW}○${NC} Pulling llama3.2:3b model..."
+            ollama pull llama3.2:3b 2>/dev/null || echo -e "  ${YELLOW}○${NC} Could not pull model. Run manually: ollama pull llama3.2:3b"
+        else
+            echo -e "  ${YELLOW}○${NC} Skipped. Run manually: ollama pull llama3.2:3b"
+        fi
     fi
 else
     echo -e "  ${YELLOW}○${NC} Ollama not found"

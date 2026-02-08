@@ -9,6 +9,7 @@ import os
 import sys
 import subprocess
 from pathlib import Path
+from datetime import datetime
 from typing import Dict, List, Tuple
 
 # ANSI color codes
@@ -217,6 +218,76 @@ class OptimizationVerifier:
 
         return savings
 
+    def check_benefit_report(self, savings: Dict):
+        """Show benefit report every 7 days with donation CTA."""
+        stats_path = self.openclaw_dir / 'token-optimizer-stats.json'
+
+        if not stats_path.exists():
+            return
+
+        try:
+            with open(stats_path, 'r') as f:
+                stats = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            return
+
+        installed_at = stats.get('installed_at')
+        if not installed_at:
+            return
+
+        try:
+            install_date = datetime.fromisoformat(installed_at)
+        except ValueError:
+            return
+
+        now = datetime.now()
+        days_active = (now - install_date).days
+
+        if days_active < 7:
+            return
+
+        # Check if 7 days since last report
+        last_report = stats.get('last_benefit_report')
+        if last_report:
+            try:
+                last_report_date = datetime.fromisoformat(last_report)
+                days_since_report = (now - last_report_date).days
+                if days_since_report < 7:
+                    return
+            except ValueError:
+                pass
+
+        # Calculate accumulated savings
+        weekly_savings = savings['total'] / 4.33  # monthly to weekly
+        total_savings = (savings['total'] / 30) * days_active
+        yearly_projection = savings['total'] * 12
+
+        # Show benefit report
+        print(colorize("\n  ╔══════════════════════════════════════════════════╗", Colors.BOLD + Colors.GREEN))
+        print(colorize("  ║         Your Savings Report                      ║", Colors.BOLD + Colors.GREEN))
+        print(colorize("  ╠══════════════════════════════════════════════════╣", Colors.GREEN))
+        print(colorize(f"  ║  Active for: {days_active} days                              ", Colors.GREEN))
+        print(colorize(f"  ║                                                  ", Colors.GREEN))
+        print(colorize(f"  ║  Savings this week:       ~${weekly_savings:>8.2f}          ", Colors.GREEN))
+        print(colorize(f"  ║  Savings since install:   ~${total_savings:>8.2f}          ", Colors.GREEN))
+        print(colorize(f"  ║  Projected yearly:        ~${yearly_projection:>8.2f}          ", Colors.GREEN))
+        print(colorize(f"  ║                                                  ", Colors.GREEN))
+        print(colorize(f"  ║  Token Optimizer is saving you real money.       ", Colors.GREEN))
+        print(colorize(f"  ║  If it helps, consider a small thank-you:       ", Colors.GREEN))
+        print(colorize(f"  ║                                                  ", Colors.GREEN))
+        print(colorize(f"  ║  -> https://ko-fi.com/smartpeopleconnected       ", Colors.CYAN + Colors.BOLD))
+        print(colorize(f"  ║                                                  ", Colors.GREEN))
+        print(colorize("  ╚══════════════════════════════════════════════════╝", Colors.GREEN))
+
+        # Update last report timestamp
+        stats['last_benefit_report'] = now.isoformat()
+        stats['verify_count'] = stats.get('verify_count', 0) + 1
+        try:
+            with open(stats_path, 'w') as f:
+                json.dump(stats, f, indent=2)
+        except IOError:
+            pass
+
     def run_verification(self):
         """Run all verification checks."""
         print(colorize("\n=== Token Optimizer - Verification ===\n", Colors.BOLD + Colors.CYAN))
@@ -292,6 +363,9 @@ class OptimizationVerifier:
                 if not status:
                     print(f"  - Fix: {name}")
             print(colorize("\nRun 'token-optimizer optimize' to apply missing optimizations", Colors.CYAN))
+
+        # Show benefit report (every 7 days)
+        self.check_benefit_report(savings)
 
         return failed == 0
 
