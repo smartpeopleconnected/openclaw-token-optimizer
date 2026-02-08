@@ -111,7 +111,15 @@ The default configuration prioritizes capability over cost - meaning you're burn
 
 ### Changelog
 
-**v1.0.0** (Initial Release)
+**v1.0.7** (2026-02-08) - Security & Savings Report
+- **SECURITY:** Removed agent prompt injection from SKILL.md (ClawHub review finding)
+- **SECURITY:** Dry-run is now the default - use `--apply` to make changes
+- **SECURITY:** User confirmation before downloading Ollama model (~2GB)
+- **SECURITY:** Existing user config files are no longer overwritten
+- **NEW:** 7-day savings report shows accumulated cost savings with weekly breakdown
+- **BREAKING:** `--dry-run` flag replaced by `--apply` (dry-run is now default)
+
+**v1.0.0 - v1.0.6** (Initial Releases)
 - Model routing optimization (Haiku default)
 - Ollama heartbeat configuration
 - Prompt caching setup
@@ -120,3 +128,5 @@ The default configuration prioritizes capability over cost - meaning you're burn
 - Windows and Unix installers
 - Workspace templates
 - Verification tools
+- Ko-fi support integration
+- Marketing materials
