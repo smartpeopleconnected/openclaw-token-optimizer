@@ -35,17 +35,17 @@ OpenClaw defaults prioritize capability over cost. You're burning expensive Sonn
 
 Four core optimizations plus powerful tooling:
 
-### ✅ Model Routing (92% savings)
+### Model Routing (92% savings)
 Haiku by default, Sonnet/Opus only when needed
 
-### ✅ Multi-Provider Heartbeats (100% savings)
+### Multi-Provider Heartbeats (100% savings)
 Route heartbeats to Ollama, LM Studio, Groq, or disable entirely. Not locked to one provider.
 
-### ✅ Session Management (80% savings)
+### Session Management (80% savings)
 Load 8KB instead of 50KB context
 
-### ✅ Prompt Caching (90% savings)
-Reuse system prompts at 10% cost
+### Caching (90% savings)
+Reuse prompts at 10% cost
 
 ### New in v1.0.8
 - **Rollback** - List and restore config backups instantly
@@ -68,7 +68,7 @@ Reuse system prompts at 10% cost
 - Config rollback and health check commands
 - Ready-to-use config templates
 - SOUL.md & USER.md templates
-- System prompt optimization rules
+- Optimization rules for agent prompts
 - Verification and savings reports
 - Windows + Unix installers
 
