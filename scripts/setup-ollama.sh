@@ -134,13 +134,29 @@ else
             info "Installing via Homebrew..."
             brew install ollama
         else
-            info "Installing via official script..."
-            curl -fsSL https://ollama.com/install.sh | sh
+            info "Downloading official installer..."
+            curl -fsSL https://ollama.com/install.sh -o /tmp/ollama-install.sh
+            info "Review the script at /tmp/ollama-install.sh before continuing."
+            read -p "  Run installer? [y/N] " confirm
+            if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+                sh /tmp/ollama-install.sh
+            else
+                echo "Skipped. Run manually: sh /tmp/ollama-install.sh"
+            fi
+            rm -f /tmp/ollama-install.sh
         fi
     else
         # Linux
-        info "Installing via official script..."
-        curl -fsSL https://ollama.com/install.sh | sh
+        info "Downloading official installer..."
+        curl -fsSL https://ollama.com/install.sh -o /tmp/ollama-install.sh
+        info "Review the script at /tmp/ollama-install.sh before continuing."
+        read -p "  Run installer? [y/N] " confirm
+        if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+            sh /tmp/ollama-install.sh
+        else
+            echo "Skipped. Run manually: sh /tmp/ollama-install.sh"
+        fi
+        rm -f /tmp/ollama-install.sh
     fi
 
     if is_ollama_installed; then
