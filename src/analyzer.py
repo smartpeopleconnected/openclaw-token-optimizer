@@ -11,23 +11,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
-# ANSI color codes for terminal output
-class Colors:
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    MAGENTA = '\033[95m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    BOLD = '\033[1m'
-    END = '\033[0m'
-
-def colorize(text: str, color: str) -> str:
-    """Apply color to text if terminal supports it."""
-    if sys.stdout.isatty():
-        return f"{color}{text}{Colors.END}"
-    return text
+try:
+    from src.colors import Colors, colorize
+except ImportError:
+    from colors import Colors, colorize
 
 class OpenClawAnalyzer:
     """Analyzes OpenClaw configuration for token optimization opportunities."""

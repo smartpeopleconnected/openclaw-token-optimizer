@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.8] - 2026-02-12
+
+### New Features
+- **Configurable heartbeat providers** - Support for `ollama`, `lmstudio`, `groq`, and `none`. Configure via `setup-heartbeat --provider <name>`.
+- **Rollback command** - List and restore config backups with `rollback --list` and `rollback --to <file>`.
+- **Health check command** - Quick system status with `health` (config, JSON validity, provider reachable, workspace size, budgets).
+- **Diff preview in dry-run** - `optimize --dry-run` now shows a colored unified diff instead of dumping the full config.
+- **`--no-color` flag** - Disable colored output globally with `--no-color` or `NO_COLOR` env var.
+
+### Improvements
+- **Shared colors module** - Deduplicated color code from 3 files into `src/colors.py`.
+- **Version single source of truth** - All files read version from `src/__init__.py`. No more hardcoded version strings.
+- **Extended triggers** - Added 10 new search triggers for better marketplace discovery.
+- **Provider-aware verification** - `verify` checks the configured heartbeat provider instead of only Ollama.
+
+### Fixes
+- **License consistency** - Fixed setup.py classifier from "Proprietary" to MIT, README from "Commercial" to MIT.
+- **URLs** - setup.py now points to correct smartpeopleconnected GitHub URLs.
+- **Version sync** - All 7 files that showed "1.0.0" now correctly show 1.0.8.
+
 ## [1.0.7] - 2026-02-08
 
 ### Security Improvements

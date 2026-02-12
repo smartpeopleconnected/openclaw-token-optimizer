@@ -2,7 +2,7 @@
 
 **Reduce your AI costs by 97% - From $1,500+/month to under $50/month**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/smartpeopleconnected/openclaw-token-optimizer)
+[![Version](https://img.shields.io/badge/version-1.0.8-blue.svg)](https://github.com/smartpeopleconnected/openclaw-token-optimizer)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-Compatible-purple.svg)](https://openclaw.ai)
 [![Cost Savings](https://img.shields.io/badge/savings-97%25-brightgreen.svg)](https://github.com/smartpeopleconnected/openclaw-token-optimizer)
@@ -58,17 +58,20 @@ chmod +x scripts/install.sh
 
 **Manual Python:**
 ```bash
-# Preview changes (safe dry-run, default)
-python src/optimizer.py --mode full
+# Preview changes (safe dry-run with diff)
+python cli.py optimize --dry-run
 
 # Apply changes
-python src/optimizer.py --mode full --apply
+python cli.py optimize
+
+# Quick health check
+python cli.py health
 ```
 
 ### Verify Setup
 
 ```bash
-python src/verify.py
+python cli.py verify
 ```
 
 ## Features
@@ -107,46 +110,65 @@ Built-in rate limits and budget warnings:
 
 ### Analyze Current Setup
 ```bash
-python src/analyzer.py
+python cli.py analyze
 ```
 
-Shows:
-- Current configuration status
-- Workspace file sizes
-- Optimization opportunities
-- Estimated monthly savings
+Shows current configuration status, workspace file sizes, optimization opportunities, and estimated monthly savings.
 
-### Preview Changes (Dry Run)
+### Preview Changes (Dry Run with Diff)
 ```bash
-python src/optimizer.py --mode full
+python cli.py optimize --dry-run
 ```
 
-Shows what would change without modifying anything. This is the default.
+Shows a colored unified diff of what would change, without modifying anything.
 
 ### Apply Full Optimization
 ```bash
-python src/optimizer.py --mode full --apply
+python cli.py optimize
 ```
 
-Applies all optimizations:
-- Updates `~/.openclaw/openclaw.json`
-- Generates workspace templates
-- Creates system prompt rules
-- Sets up Ollama heartbeat
+Applies all optimizations: model routing, heartbeat, caching, rate limits, workspace templates, and system prompts.
 
 ### Apply Specific Optimizations
 ```bash
-# Model routing only
-python src/optimizer.py --mode routing --apply
+python cli.py optimize --mode routing    # Model routing only
+python cli.py optimize --mode heartbeat  # Heartbeat only
+python cli.py optimize --mode caching    # Prompt caching only
+python cli.py optimize --mode limits     # Rate limits only
+```
 
-# Heartbeat to Ollama only
-python src/optimizer.py --mode heartbeat --apply
+### Quick Health Check
+```bash
+python cli.py health
+```
 
-# Prompt caching only
-python src/optimizer.py --mode caching --apply
+Checks config exists, valid JSON, provider reachable, workspace lean, and budget active.
 
-# Rate limits only
-python src/optimizer.py --mode limits --apply
+### Configure Heartbeat Provider
+```bash
+python cli.py setup-heartbeat --provider ollama      # Default
+python cli.py setup-heartbeat --provider lmstudio     # LM Studio
+python cli.py setup-heartbeat --provider groq         # Groq cloud
+python cli.py setup-heartbeat --provider none         # Disable heartbeat
+python cli.py setup-heartbeat --provider groq --fallback ollama
+```
+
+### Rollback Configuration
+```bash
+python cli.py rollback --list            # List available backups
+python cli.py rollback --to <filename>   # Restore a specific backup
+```
+
+### Verify Setup
+```bash
+python cli.py verify
+```
+
+### Disable Colors
+```bash
+python cli.py --no-color optimize --dry-run
+# or
+NO_COLOR=1 python cli.py optimize --dry-run
 ```
 
 ## Configuration
@@ -218,7 +240,8 @@ token-optimizer/
 ├── skill.json                 # Skill manifest
 ├── README.md                  # This file
 ├── src/
-│   ├── __init__.py
+│   ├── __init__.py            # Version (single source of truth)
+│   ├── colors.py              # Shared ANSI colors
 │   ├── analyzer.py            # Analyzes current config
 │   ├── optimizer.py           # Applies optimizations
 │   └── verify.py              # Verifies setup
@@ -262,10 +285,10 @@ token-optimizer/
 
 ## License
 
-Commercial license. See [LICENSE](LICENSE) for details.
+MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with care by TokenOptimizer**
+**Built with care by Smart People Connected**
 
 *Stop burning tokens. Start building things.*

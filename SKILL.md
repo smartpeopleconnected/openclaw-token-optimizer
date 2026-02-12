@@ -3,13 +3,24 @@ name: token-optimizer
 description: Reduce OpenClaw AI costs by 97%. Haiku model routing, free Ollama heartbeats, prompt caching, and budget controls. Go from $1,500/month to $50/month in 5 minutes.
 homepage: https://github.com/smartpeopleconnected/openclaw-token-optimizer
 triggers:
-  - high costs
-  - expensive
+  - too expensive
+  - costs too much
   - burning tokens
+  - high token usage
   - reduce costs
   - save money
+  - optimize tokens
   - budget exceeded
   - token optimization
+  - cut api costs
+  - lower ai spend
+  - cheaper model
+  - cost savings
+  - api bill
+  - spending too much
+  - waste tokens
+  - token budget
+  - reduce token usage
 ---
 
 # Token Optimizer for OpenClaw
@@ -60,16 +71,26 @@ Reuse system prompts at 10% cost
 clawhub install token-optimizer
 
 # Analyze current setup
-python src/analyzer.py
+python cli.py analyze
 
-# Preview changes (dry-run, default)
-python src/optimizer.py --mode full
+# Preview changes (dry-run with diff)
+python cli.py optimize --dry-run
 
 # Apply all optimizations
-python src/optimizer.py --mode full --apply
+python cli.py optimize
 
 # Verify setup
-python src/verify.py
+python cli.py verify
+
+# Quick health check
+python cli.py health
+
+# Configure heartbeat provider (ollama, lmstudio, groq, none)
+python cli.py setup-heartbeat --provider ollama
+
+# List and restore backups
+python cli.py rollback --list
+python cli.py rollback --to <backup-file>
 ```
 
 ## Configuration Generated

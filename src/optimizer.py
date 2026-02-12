@@ -9,27 +9,96 @@ import os
 import sys
 import shutil
 import subprocess
+import difflib
+import urllib.request
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
 import argparse
 
-# ANSI color codes
-class Colors:
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    MAGENTA = '\033[95m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    BOLD = '\033[1m'
-    END = '\033[0m'
+try:
+    from src.colors import Colors, colorize
+    from src import __version__
+except ImportError:
+    # Standalone execution fallback
+    from colors import Colors, colorize
+    __version__ = "1.0.8"
 
-def colorize(text: str, color: str) -> str:
-    if sys.stdout.isatty():
-        return f"{color}{text}{Colors.END}"
-    return text
+
+HEARTBEAT_PROVIDERS = {
+    "ollama": {
+        "endpoint": "http://localhost:11434",
+        "default_model": "llama3.2:3b",
+        "model_prefix": "ollama/",
+        "check_cmd": ["ollama", "list"],
+    },
+    "lmstudio": {
+        "endpoint": "http://localhost:1234",
+        "default_model": "llama3.2:3b",
+        "model_prefix": "lmstudio/",
+        "check_cmd": None,
+    },
+    "groq": {
+        "endpoint": "https://api.groq.com",
+        "default_model": "llama-3.2-3b-preview",
+        "model_prefix": "groq/",
+        "check_cmd": None,
+    },
+    "none": {
+        "endpoint": None,
+        "default_model": None,
+        "model_prefix": "",
+        "check_cmd": None,
+    },
+}
+
+
+def resolve_heartbeat_provider(config: Dict) -> str:
+    """Resolve heartbeat provider from config, with auto-detect fallback."""
+    heartbeat = config.get("heartbeat", {})
+
+    # Explicit provider field takes priority
+    provider = heartbeat.get("provider")
+    if provider and provider in HEARTBEAT_PROVIDERS:
+        return provider
+
+    # Auto-detect from model string
+    model = heartbeat.get("model", "")
+    for name in HEARTBEAT_PROVIDERS:
+        if name != "none" and name in model.lower():
+            return name
+
+    return "ollama"  # default
+
+
+def check_heartbeat_provider(provider: str) -> bool:
+    """Check if a heartbeat provider is reachable."""
+    if provider == "none":
+        return True
+
+    info = HEARTBEAT_PROVIDERS.get(provider)
+    if not info:
+        return False
+
+    # Try CLI command first (ollama)
+    if info.get("check_cmd"):
+        try:
+            result = subprocess.run(info["check_cmd"], capture_output=True, text=True, timeout=5)
+            return result.returncode == 0
+        except (subprocess.SubprocessError, FileNotFoundError):
+            return False
+
+    # Try HTTP endpoint
+    endpoint = info.get("endpoint")
+    if endpoint:
+        try:
+            req = urllib.request.Request(endpoint, method="GET")
+            urllib.request.urlopen(req, timeout=5)
+            return True
+        except Exception:
+            return False
+
+    return False
 
 
 class TokenOptimizer:
@@ -70,12 +139,13 @@ class TokenOptimizer:
         return {}
 
     def save_config(self, config: Dict):
-        """Save configuration to file."""
+        """Save configuration to file. In dry-run mode, show a diff preview."""
         self.openclaw_dir.mkdir(parents=True, exist_ok=True)
 
         if self.dry_run:
-            print(colorize("\n[DRY-RUN] Would save config:", Colors.YELLOW))
-            print(json.dumps(config, indent=2))
+            print(colorize("\n[DRY-RUN] Changes preview:", Colors.YELLOW))
+            existing = self.load_config()
+            self._show_diff(existing, config)
         else:
             with open(self.config_path, 'w') as f:
                 json.dump(config, f, indent=2)
@@ -132,7 +202,7 @@ class TokenOptimizer:
             },
             "_meta": {
                 "optimized_by": "token-optimizer",
-                "version": "1.0.0",
+                "version": __version__,
                 "optimized_at": datetime.now().isoformat()
             }
         }
@@ -165,12 +235,36 @@ class TokenOptimizer:
         print(colorize("[APPLIED] Model routing: Haiku default, Sonnet/Opus aliases", Colors.GREEN))
         return config
 
-    def apply_heartbeat(self, config: Dict) -> Dict:
-        """Apply heartbeat optimization only."""
+    def apply_heartbeat(self, config: Dict, provider: str = None, model: str = None, fallback: str = None) -> Dict:
+        """Apply heartbeat optimization with configurable provider."""
         optimized = self.generate_optimized_config()
-        config['heartbeat'] = optimized['heartbeat']
 
-        print(colorize("[APPLIED] Heartbeat: Ollama llama3.2:3b (free)", Colors.GREEN))
+        if provider is None:
+            provider = resolve_heartbeat_provider(config)
+
+        info = HEARTBEAT_PROVIDERS.get(provider, HEARTBEAT_PROVIDERS["ollama"])
+
+        if provider == "none":
+            config.pop("heartbeat", None)
+            print(colorize("[APPLIED] Heartbeat: disabled", Colors.YELLOW))
+            return config
+
+        heartbeat = optimized['heartbeat']
+        heartbeat['provider'] = provider
+
+        if model:
+            heartbeat['model'] = f"{info['model_prefix']}{model}"
+        else:
+            heartbeat['model'] = f"{info['model_prefix']}{info['default_model']}"
+
+        if info.get('endpoint'):
+            heartbeat['endpoint'] = info['endpoint']
+
+        if fallback and fallback in HEARTBEAT_PROVIDERS:
+            heartbeat['fallback'] = fallback
+
+        config['heartbeat'] = heartbeat
+        print(colorize(f"[APPLIED] Heartbeat: {provider} {heartbeat['model']}", Colors.GREEN))
         return config
 
     def apply_caching(self, config: Dict) -> Dict:
@@ -204,39 +298,134 @@ class TokenOptimizer:
         except (subprocess.SubprocessError, FileNotFoundError):
             return False
 
-    def setup_ollama_heartbeat(self) -> bool:
-        """Attempt to set up Ollama for heartbeat."""
-        print(colorize("\n--- Setting up Ollama for Heartbeat ---", Colors.BOLD))
+    def setup_heartbeat_provider(self, provider: str = "ollama", model: str = None, fallback: str = None) -> bool:
+        """Set up heartbeat provider."""
+        print(colorize(f"\n--- Setting up {provider} for Heartbeat ---", Colors.BOLD))
 
-        if not self.check_ollama():
-            print(colorize("[WARNING] Ollama not detected", Colors.YELLOW))
-            print("  Install Ollama from: https://ollama.ai")
-            print("  Then run: ollama pull llama3.2:3b")
+        if provider == "none":
+            print(colorize("[OK] Heartbeat disabled", Colors.YELLOW))
+            return True
+
+        if provider not in HEARTBEAT_PROVIDERS:
+            print(colorize(f"[ERROR] Unknown provider: {provider}. Choose from: {', '.join(HEARTBEAT_PROVIDERS.keys())}", Colors.RED))
             return False
 
-        # Check if model is available
+        reachable = check_heartbeat_provider(provider)
+        if not reachable:
+            info = HEARTBEAT_PROVIDERS[provider]
+            endpoint = info.get("endpoint", "")
+            print(colorize(f"[WARNING] {provider} not reachable at {endpoint}", Colors.YELLOW))
+
+            if provider == "ollama":
+                print("  Install Ollama from: https://ollama.ai")
+                print("  Then run: ollama pull llama3.2:3b")
+            elif provider == "lmstudio":
+                print("  Start LM Studio and enable the local server on port 1234")
+            elif provider == "groq":
+                print("  Set GROQ_API_KEY environment variable")
+
+            if fallback and fallback != provider:
+                print(colorize(f"[FALLBACK] Trying fallback provider: {fallback}", Colors.CYAN))
+                return self.setup_heartbeat_provider(fallback, model)
+
+            return False
+
+        # Ollama-specific: check/pull model
+        if provider == "ollama":
+            return self._setup_ollama_model(model)
+
+        print(colorize(f"[OK] {provider} is reachable", Colors.GREEN))
+        return True
+
+    def _setup_ollama_model(self, model: str = None) -> bool:
+        """Check and optionally pull Ollama model."""
+        target_model = model or "llama3.2:3b"
         try:
             result = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
-            if 'llama3.2:3b' not in result.stdout and 'llama3.2' not in result.stdout:
+            model_base = target_model.split(":")[0]
+            if target_model not in result.stdout and model_base not in result.stdout:
                 if self.dry_run:
-                    print(colorize("[DRY-RUN] Would pull llama3.2:3b model (~2GB)", Colors.YELLOW))
+                    print(colorize(f"[DRY-RUN] Would pull {target_model} model (~2GB)", Colors.YELLOW))
                 else:
                     answer = input(colorize(
-                        "[CONFIRM] Download llama3.2:3b model (~2GB)? [y/N] ", Colors.CYAN
+                        f"[CONFIRM] Download {target_model} model (~2GB)? [y/N] ", Colors.CYAN
                     )).strip().lower()
                     if answer == 'y':
-                        print(colorize("[INFO] Pulling llama3.2:3b model...", Colors.CYAN))
-                        subprocess.run(['ollama', 'pull', 'llama3.2:3b'], check=True)
+                        print(colorize(f"[INFO] Pulling {target_model} model...", Colors.CYAN))
+                        subprocess.run(['ollama', 'pull', target_model], check=True)
                         print(colorize("[SUCCESS] Model ready", Colors.GREEN))
                     else:
-                        print(colorize("[SKIP] Model not downloaded. Run manually: ollama pull llama3.2:3b", Colors.YELLOW))
+                        print(colorize(f"[SKIP] Model not downloaded. Run manually: ollama pull {target_model}", Colors.YELLOW))
             else:
-                print(colorize("[OK] llama3.2 model already available", Colors.GREEN))
+                print(colorize(f"[OK] {model_base} model already available", Colors.GREEN))
         except subprocess.SubprocessError as e:
             print(colorize(f"[ERROR] Failed to pull model: {e}", Colors.RED))
             return False
-
         return True
+
+    def setup_ollama_heartbeat(self) -> bool:
+        """Attempt to set up Ollama for heartbeat (legacy compatibility)."""
+        return self.setup_heartbeat_provider("ollama")
+
+    def list_backups(self) -> List[Path]:
+        """List available config backups."""
+        if not self.backup_dir.exists():
+            return []
+        backups = sorted(self.backup_dir.glob('openclaw_*.json'), reverse=True)
+        return backups
+
+    def restore_backup(self, backup_path: Path) -> bool:
+        """Restore a config backup."""
+        if not backup_path.exists():
+            print(colorize(f"[ERROR] Backup not found: {backup_path}", Colors.RED))
+            return False
+
+        try:
+            with open(backup_path, 'r') as f:
+                json.load(f)  # validate JSON
+        except json.JSONDecodeError:
+            print(colorize(f"[ERROR] Backup is not valid JSON: {backup_path}", Colors.RED))
+            return False
+
+        if self.dry_run:
+            print(colorize(f"[DRY-RUN] Would restore config from: {backup_path}", Colors.YELLOW))
+            return True
+
+        # Backup current config before restoring
+        self.backup_config()
+
+        shutil.copy(backup_path, self.config_path)
+        print(colorize(f"[RESTORED] Config restored from: {backup_path}", Colors.GREEN))
+        return True
+
+    def _show_diff(self, old_config: Dict, new_config: Dict):
+        """Show colored unified diff between old and new config."""
+        old_lines = json.dumps(old_config, indent=2).splitlines(keepends=True)
+        new_lines = json.dumps(new_config, indent=2).splitlines(keepends=True)
+
+        diff = list(difflib.unified_diff(
+            old_lines, new_lines,
+            fromfile="current config",
+            tofile="optimized config",
+            lineterm=""
+        ))
+
+        if not diff:
+            print(colorize("  (no changes)", Colors.YELLOW))
+            return
+
+        for line in diff:
+            line = line.rstrip('\n')
+            if line.startswith('+++') or line.startswith('---'):
+                print(colorize(line, Colors.BOLD))
+            elif line.startswith('+'):
+                print(colorize(line, Colors.GREEN))
+            elif line.startswith('-'):
+                print(colorize(line, Colors.RED))
+            elif line.startswith('@@'):
+                print(colorize(line, Colors.CYAN))
+            else:
+                print(line)
 
     def init_stats(self):
         """Initialize or update stats tracking file for benefit reports."""

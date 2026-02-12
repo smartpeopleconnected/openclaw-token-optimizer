@@ -6,6 +6,11 @@ Package configuration for pip installation.
 
 from setuptools import setup, find_packages
 from pathlib import Path
+import re
+
+# Read version from src/__init__.py (single source of truth)
+init_path = Path(__file__).parent / "src" / "__init__.py"
+version = re.search(r'__version__\s*=\s*"([^"]+)"', init_path.read_text()).group(1)
 
 # Read README for long description
 readme_path = Path(__file__).parent / "README.md"
@@ -13,21 +18,22 @@ long_description = readme_path.read_text(encoding="utf-8") if readme_path.exists
 
 setup(
     name="token-optimizer",
-    version="1.0.0",
-    author="TokenOptimizer",
-    author_email="support@tokenoptimizer.ai",
+    version=version,
+    author="Smart People Connected",
+    author_email="smartpeopleconnected@gmail.com",
     description="Reduce OpenClaw AI costs by 97% - From $1,500+/month to under $50/month",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/tokenoptimizer/openclaw-optimizer",
+    url="https://github.com/smartpeopleconnected/openclaw-token-optimizer",
     project_urls={
-        "Documentation": "https://docs.tokenoptimizer.ai",
-        "Bug Tracker": "https://github.com/tokenoptimizer/openclaw-optimizer/issues",
+        "Homepage": "https://github.com/smartpeopleconnected/openclaw-token-optimizer",
+        "Bug Tracker": "https://github.com/smartpeopleconnected/openclaw-token-optimizer/issues",
+        "Ko-fi": "https://ko-fi.com/smartpeopleconnected",
     },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: Other/Proprietary License",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",

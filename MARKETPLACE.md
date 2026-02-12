@@ -111,6 +111,18 @@ The default configuration prioritizes capability over cost - meaning you're burn
 
 ### Changelog
 
+**v1.0.8** (2026-02-12) - Quality & Provider Support
+- **NEW:** Configurable heartbeat providers: ollama, lmstudio, groq, none
+- **NEW:** Rollback command to list and restore config backups
+- **NEW:** Health check command for quick system status
+- **NEW:** Diff preview in dry-run mode (colored unified diff)
+- **NEW:** `--no-color` flag and `NO_COLOR` env var support
+- **IMPROVED:** Shared colors module (deduplicated code)
+- **IMPROVED:** Version single source of truth across all files
+- **IMPROVED:** Extended marketplace triggers (+10 new search terms)
+- **FIX:** License consistency (MIT everywhere)
+- **FIX:** Version sync (was showing 1.0.0 in 7 files)
+
 **v1.0.7** (2026-02-08) - Security & Savings Report
 - **SECURITY:** Removed agent prompt injection from SKILL.md (ClawHub review finding)
 - **SECURITY:** Dry-run is now the default - use `--apply` to make changes
