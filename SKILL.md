@@ -33,19 +33,25 @@ OpenClaw defaults prioritize capability over cost. You're burning expensive Sonn
 
 ## The Solution
 
-Four optimizations that work together:
+Four core optimizations plus powerful tooling:
 
 ### ✅ Model Routing (92% savings)
 Haiku by default, Sonnet/Opus only when needed
 
-### ✅ Ollama Heartbeats (100% savings)
-Free local LLM for status checks
+### ✅ Multi-Provider Heartbeats (100% savings)
+Route heartbeats to Ollama, LM Studio, Groq, or disable entirely. Not locked to one provider.
 
 ### ✅ Session Management (80% savings)
 Load 8KB instead of 50KB context
 
 ### ✅ Prompt Caching (90% savings)
 Reuse system prompts at 10% cost
+
+### New in v1.0.8
+- **Rollback** - List and restore config backups instantly
+- **Health Check** - Quick system status in one command
+- **Diff Preview** - See exactly what changes before applying
+- **--no-color** - CI/pipeline friendly output
 
 ## Cost Comparison
 
@@ -57,11 +63,13 @@ Reuse system prompts at 10% cost
 
 ## What's Included
 
-- One-command optimizer
+- One-command optimizer with diff preview
+- Multi-provider heartbeat (Ollama, LM Studio, Groq)
+- Config rollback and health check commands
 - Ready-to-use config templates
 - SOUL.md & USER.md templates
 - System prompt optimization rules
-- Verification tools
+- Verification and savings reports
 - Windows + Unix installers
 
 ## Quick Start
@@ -104,6 +112,7 @@ python cli.py rollback --to <backup-file>
     }
   },
   "heartbeat": {
+    "provider": "ollama",
     "model": "ollama/llama3.2:3b"
   },
   "budgets": {
