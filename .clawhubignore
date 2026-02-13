@@ -1,0 +1,12 @@
+# Marketing materials (not part of the skill)
+marketing/
+VIRAL_PROMPT.md
+pdf/
+skills/
+
+# Shortcuts and temp files
+*.url
+nul
+
+# Info materials
+infomaterial/
