@@ -4,6 +4,9 @@ VIRAL_PROMPT.md
 pdf/
 skills/
 
+# Install scripts (optional, available on GitHub)
+scripts/
+
 # Shortcuts and temp files
 *.url
 nul
